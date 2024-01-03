@@ -1,0 +1,33 @@
+     1                                  ;10. Se da un sir A de cuvinte. Construiti 2 siruri de octeti:
+     2                                  ; - B1: contine ca elemente partea superioara a cuvintelor din A
+     3                                  ; - B2: contine ca elemente partea inferioara a cuvintelor din A
+     4                                  
+     5                                  bits 32
+     6                                  global start
+     7                                  extern exit
+     8                                  import exit msvcrt.dll
+     9                                  
+    10                                  segment data use32 class=data
+    11 00000000 34121946AA12322A            a dw 1234h, 4619h, 12AAh, 2A32h ; sir initial
+    12                                      len equ ($-a)/2 ; lungimea sirului in cuvinte
+    13 00000008 <res 00000004>              b1 resb len ; rezervam len cuvinte pentru sirul b1
+    14                                      ; 12h, 46h, 12h, 2Ah
+    15 0000000C <res 00000004>              b2 resb len ; rezervam len cuvinte pentru sirul b2
+    16                                      ; 34h, 19h, AAh, 32h
+    17                                  
+    18                                  segment code use32 class=code
+    19                                      start:
+    20 00000000 BE00000000                      mov esi, 0 ; esi va fi offset-ul pt sirul A
+    21 00000005 BF00000000                      mov edi, 0 ; edi va fi offset-ul pt sirurile B1 si B2 (le parcurgem deodata)
+    22 0000000A B904000000                      mov ecx, len ; repetam loop-ul de len ori
+    23 0000000F E319                            jecxz Sfarsit
+    24                                          Repeta:
+    25 00000011 668B86[00000000]                    mov ax, [a+esi] ; punem in AX cuvantul din A+ESI
+    26 00000018 8887[0C000000]                      mov [b2+edi], al ; punem in B2+EDI partea inferioara a cuvantului din AX
+    27 0000001E 88A7[08000000]                      mov [b1+edi], ah ; punem in B1+EDI partea superioara a cuvantului din AX
+    28 00000024 47                                  inc edi ; incrementam EDI
+    29 00000025 83C602                              add esi, 2 ; crestem ESI cu 2 pt ca sirul A e format din cuvinte
+    30 00000028 E2E7                                loop Repeta
+    31                                      Sfarsit:
+    32 0000002A 6A00                            push    dword 0
+    33 0000002C FF15[00000000]                  call    [exit]

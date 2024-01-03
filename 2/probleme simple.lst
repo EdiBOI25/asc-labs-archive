@@ -1,0 +1,103 @@
+     1                                  bits 32 ;asamblare si compilare pentru arhitectura de 32 biti
+     2                                  ; definim punctul de intrare in programul principal
+     3                                  global  start 
+     4                                  
+     5                                  extern  exit ; indicam asamblorului ca exit exista, chiar daca noi nu o vom defini
+     6                                  import  exit msvcrt.dll; exit este o functie care incheie procesul, este definita in msvcrt.dll
+     7                                          ; msvcrt.dll contine exit, printf si toate celelalte functii C-runtime importante
+     8                                  segment  data use32 class=data ; segmentul de date in care se vor defini variabilele 
+     9 00000000 0A                      	a  db 10
+    10 00000001 2800                    	b  dw 40
+    11                                  segment  code use32 class=code ; segmentul de cod
+    12                                  start: 
+    13 00000000 B800000000                  mov eax, 0
+    14 00000005 BB00000000                  mov ebx, 0
+    15                                      ;int 3 ; breakpoint ca altfel nu stiu sa folosesc debuggerul
+    16                                      
+    17                                      ;1. 1+9
+    18                                  ;	mov al,1 ; punem 1 in al
+    19                                  ;    mov bl, 9 ; punem 9 in bl
+    20                                  ;    add al, bl ; adunam in al pe bl => 10d
+    21                                      
+    22                                      ;2. 1+15
+    23                                  ;    mov al,1 ; al = 1
+    24                                  ;    mov bl, 15 ; bl = 15
+    25                                  ;    add al, bl ; al => 16
+    26                                      
+    27                                      ;3. 128+128
+    28                                  ;    mov al, 128 ;al = 128
+    29                                  ;    mov bl, 128 ;bl = 128
+    30                                  ;    add ax, bx ;ax => 256
+    31                                      
+    32                                      ;4. 5-6
+    33                                  ;    mov ax, 5 ; ax = 5
+    34                                  ;    mov bx, 6; bx = 6
+    35                                  ;    sub ax, bx; ax = -1
+    36                                      
+    37                                      ;5. 10/4
+    38                                  ;    mov ax, 10 ; ax = 10
+    39                                  ;    mov bx, 4 ; bx = 4
+    40                                  ;    div bl ; al = ax/bl, ah = ax % bl
+    41                                      
+    42                                      ;6. 256*1
+    43                                  ;    mov ax, 256
+    44                                  ;    mov bl, 1
+    45                                  ;    mul bx
+    46                                      
+    47                                      ;7. 256/1
+    48                                  ;    mov ax, 256
+    49                                  ;    mov bl, 1
+    50                                  ;    div bl
+    51                                  
+    52                                      ;8. 128+127
+    53                                  ;    mov al, 128
+    54                                  ;    mov bl, 127
+    55                                  ;    add al, bl
+    56                                  
+    57                                      ;9. 3*4
+    58                                  ;    mov al, 3
+    59                                  ;    mov bl, 4
+    60                                  ;    mul bl
+    61                                  
+    62                                      ;10. 9+7
+    63                                  ;    mov al, 9
+    64                                  ;    mov bl, 7
+    65                                  ;    add al, bl
+    66                                  
+    67                                      ;11. 128*2
+    68                                  ;    mov al, 128
+    69                                  ;    mov bl, 2
+    70                                  ;    mul bl
+    71                                  
+    72                                      ;12. 4-5
+    73                                  ;    mov al, 4
+    74                                  ;    mov bl, 5
+    75                                  ;    sub al, bl
+    76                                  
+    77                                      ;14. -2 * 5
+    78                                  ;    mov ax, -2
+    79                                  ;    mov bx, 5
+    80                                  ;    mul bx
+    81                                  
+    82                                      ;15. 6 * 3
+    83                                  ;    mov al, 6
+    84                                  ;    mov bl, 3
+    85                                  ;    mul bl
+    86                                  
+    87                                      ;20. 13/3
+    88                                  ;    mov al, 13
+    89                                  ;    mov bl, 3
+    90                                  ;    div bl
+    91                                  
+    92                                      ;22. 16/4
+    93                                  ;    mov ax, 16
+    94                                  ;    mov bl, 4
+    95                                  ;    div bl
+    96                                  
+    97                                      ;25 64*4
+    98 0000000A B040                        mov al, 64
+    99 0000000C B304                        mov bl, 4
+   100 0000000E F6E3                        mul bl
+   101                                  
+   102 00000010 6A00                    	push   dword 0 ;se pune pe stiva codul de retur al functiei exit
+   103 00000012 FF15[00000000]          	call   [exit] ;apelul functiei sistem exit pentru terminarea executiei programului	

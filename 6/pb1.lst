@@ -1,0 +1,59 @@
+     1                                  bits 32
+     2                                  global start
+     3                                  extern exit, printf
+     4                                  import exit msvcrt.dll
+     5                                  import printf msvcrt.dll
+     6                                  
+     7                                  segment data use32
+     8 00000000 78567F12CDABCDAB            s1 dd 127F5678h, 0ABCDABCDh
+     9                                      len1 equ ($ - s1) / 4
+    10 00000008 00000000<rept>              s2 times len1 dd 0
+    11 00000010 536972756C20323A20-         format db 'Sirul 2: %x, %x', 13, 10, 0
+    11 00000019 25782C2025780D0A00 
+    12                                  
+    13                                  segment code use32
+    14                                  start:
+    15 00000000 BE[00000000]                mov esi, s1
+    16 00000005 BF[08000000]                mov edi, s2
+    17 0000000A B902000000                  mov ecx, len1
+    18 0000000F E356                        jecxz final
+    19 00000011 FC                          cld
+    20                                      big_loop:
+    21 00000012 B800000000                      mov eax, 0
+    22 00000017 66AD                            lodsw
+    23 00000019 BB00000000                      mov ebx, 0
+    24 0000001E BA00000000                      mov edx, 0
+    25 00000023 88C3                            mov bl, al
+    26 00000025 88E2                            mov dl, ah
+    27                                          
+    28 00000027 66AD                            lodsw
+    29 00000029 00C3                            add bl, al
+    30 0000002B 80D700                          adc bh, 0
+    31 0000002E 00E2                            add dl, ah
+    32 00000030 80D600                          adc dh, 0
+    33                                          
+    34 00000033 6689D8                          mov ax, bx
+    35 00000036 F6C401                          test ah, 01h
+    36 00000039 7402                            jz not_signed1
+    37 0000003B 6698                            cbw
+    38                                          not_signed1:
+    39 0000003D 66AB                            stosw
+    40                                          
+    41                                          
+    42 0000003F 6689D0                          mov ax, dx
+    43 00000042 F6C401                          test ah, 01h
+    44 00000045 7402                            jz not_signed2
+    45 00000047 6698                            cbw
+    46                                          not_signed2:
+    47 00000049 66AB                            stosw
+    48                                          
+    49 0000004B E2C5                            loop big_loop
+    50                                          
+    51 0000004D FF35[0C000000]              push dword [s2 + 4]
+    52 00000053 FF35[08000000]              push dword [s2]
+    53 00000059 68[10000000]                push dword format
+    54 0000005E FF15[00000000]              call [printf]
+    55 00000064 83C40C                      add esp, 12
+    56                                  final:
+    57 00000067 6A00                        push dword 0
+    58 00000069 FF15[00000000]              call [exit]

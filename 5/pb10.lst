@@ -1,0 +1,51 @@
+     1                                  ;Se dau doua siruri de caractere S1 si S2. Sa se construiasca sirul D prin concatenarea elementelor sirului S2 in ordine inversa cu elementele de pe pozitiile pare din sirul S1.
+     2                                  bits 32
+     3                                  global start
+     4                                  extern exit
+     5                                  import exit msvcrt.dll
+     6                                  
+     7                                  segment data use32 class=data
+     8 00000000 2B32326238365838            s1 db '+', '2', '2', 'b', '8', '6', 'X', '8'
+     9                                      len1 equ $-s1 ; lungimea sirului s1
+    10 00000008 613435                      s2 db 'a', '4', '5'
+    11                                      len2 equ $-s2 ; lungimea sirului s2
+    12 0000000B 00<rept>                    d times len1+len2 db 0 ; rezervam len1+len2 octeti pentru sirul D
+    13                                      
+    14                                  segment code use32 class=code
+    15                                  start:
+    16 00000000 B903000000                  mov ecx, len2 ; ecx = lungimea s2 pentru a putea realiza loop-ul de len2 ori
+    17 00000005 BE03000000                  mov esi, len2 ; indexul sursa
+    18 0000000A 4E                          dec esi ; esi devine pozitia ultimului element din s2
+    19 0000000B BF00000000                  mov edi, 0 ; indexul destinatie
+    20                                      
+    21 00000010 E339                        jecxz Sfarsit ; sare la eticheta Sfarsit in cazul in care ecx e 0 (safety measure)
+    22                                      ParcurgereSir2:
+    23 00000012 8A86[08000000]                  mov al, [s2+esi] ; al devine caracterul din s2[esi]
+    24 00000018 8887[0B000000]                  mov [d+edi], al ; d[edi] devine AL
+    25 0000001E 47                              inc edi ; edi++
+    26 0000001F 4E                              dec esi ; esi-- (parcurgem s2 in sens invers)
+    27 00000020 E2F0                        loop ParcurgereSir2 ; repetam loop-ul
+    28                                      
+    29 00000022 B908000000                  mov ecx, len1 ; ecx devine len1 (acelasi motiv ca mai sus)
+    30 00000027 BE00000000                  mov esi, 0
+    31 0000002C E31D                        jecxz Sfarsit ; safety measure
+    32                                      
+    33                                      ParcurgereSir1:
+    34                                          ; pozitii pare = esi impar
+    35 0000002E F7C601000000                    test esi, 01h ; testam daca esi e par
+    36 00000034 7505                            jnz PozPara ; daca esi e impar (ZF=0), atunci sarim la eticheta ePar
+    37                                          ;tratam cazul in care esi e par (ZF=1), adica pozitia e impara
+    38 00000036 46                              inc esi ; crestem indexul sursa indiferent daca e par sau impar
+    39 00000037 E2F5                            loop ParcurgereSir1 ; repetam loop-ul
+    40 00000039 EB10                            jmp Sfarsit ; cand loop-ul e gata, sarim direct la Sfarsit
+    41                                          
+    42                                      PozPara: ; tratam cazul esi e par (ZF=1)
+    43 0000003B 8A86[00000000]                  mov al, [s1+esi] ; punem in AL caracterul s1[esi]
+    44 00000041 8887[0B000000]                  mov [d+edi], al ; punem in d[edi] caracterul din AL
+    45 00000047 47                              inc edi ; crestem edi doar daca am pus caracter in sirul D
+    46 00000048 46                              inc esi ; crestem esi indiferent daca e par sau impar
+    47 00000049 E2E3                            loop ParcurgereSir1 ; repetam loop-ul
+    48                                      
+    49                                      Sfarsit:
+    50 0000004B 6A00                        push dword 0
+    51 0000004D FF15[00000000]              call [exit]

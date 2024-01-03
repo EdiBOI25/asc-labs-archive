@@ -1,0 +1,76 @@
+     1                                  bits 32
+     2                                  global start
+     3                                  
+     4                                  extern exit, scanf, printf
+     5                                  import exit msvcrt.dll
+     6                                  import scanf msvcrt.dll
+     7                                  import printf msvcrt.dll
+     8                                  
+     9                                  extern read_strings, find_substring
+    10                                  
+    11                                  segment data use32
+    12 00000000 05                          strings_nr db 5
+    13 00000001 466972737420737472-         ok_message db 'First string found in every other string', 13, 10, 0
+    13 0000000A 696E6720666F756E64-
+    13 00000013 20696E206576657279-
+    13 0000001C 206F74686572207374-
+    13 00000025 72696E670D0A00     
+    14 0000002C 466972737420737472-         not_ok_message db 'First string not found in every other string', 13, 10, 0
+    14 00000035 696E67206E6F742066-
+    14 0000003E 6F756E6420696E2065-
+    14 00000047 76657279206F746865-
+    14 00000050 7220737472696E670D-
+    14 00000059 0A00               
+    15 0000005B 00<rept>                    strings times 5 * 100 db 0
+    16 0000024F 01000000                    found dd 1
+    17 00000253 00000000                    current_string dd 0
+    18                                  
+    19                                  segment code use32 public code
+    20                                  start:
+    21                                      ; read 5 strings
+    22                                      ; read_strings(strings_nr, strings)
+    23 00000000 68[5B000000]                push dword strings
+    24 00000005 B800000000                  mov eax, 0
+    25 0000000A A0[00000000]                mov al, [strings_nr]
+    26 0000000F 50                          push eax
+    27 00000010 E8(00000000)                call read_strings
+    28                                      
+    29                                      ; loop through all strings
+    30 00000015 B904000000                  mov ecx, 4
+    31 0000001A B8[5B000000]                mov eax, strings ; strings[0]
+    32 0000001F A3[53020000]                mov [current_string], eax
+    33 00000024 E34F                        jecxz final
+    34                                      compare_loop:
+    35 00000026 51                              push ecx
+    36 00000027 A1[53020000]                    mov eax, [current_string]
+    37 0000002C 83C064                          add eax, 100
+    38 0000002F A3[53020000]                    mov [current_string], eax ; next string
+    39                                          
+    40                                          ; find_substring(string1, string2, found)
+    41 00000034 68[4F020000]                    push dword found
+    42 00000039 68[53020000]                    push dword current_string
+    43 0000003E 68[5B000000]                    push dword strings
+    44 00000043 E8(00000000)                    call find_substring
+    45                                          
+    46 00000048 B800000000                      mov eax, 0
+    47 0000004D A1[4F020000]                    mov eax, [found]
+    48 00000052 7413                            jz not_found
+    49                                          
+    50 00000054 59                              pop ecx
+    51 00000055 E2CF                            loop compare_loop
+    52                                      
+    53                                      
+    54                                      is_found:
+    55 00000057 68[01000000]                    push dword ok_message
+    56 0000005C FF15[00000000]                  call [printf]
+    57 00000062 83C404                          add esp, 4
+    58 00000065 EB0E                            jmp final
+    59                                      
+    60                                      not_found:
+    61 00000067 68[2C000000]                    push dword not_ok_message
+    62 0000006C FF15[00000000]                  call [printf]
+    63 00000072 83C404                          add esp, 4
+    64                                      
+    65                                  final:
+    66 00000075 6A00                        push dword 0
+    67 00000077 FF15[00000000]              call [exit]

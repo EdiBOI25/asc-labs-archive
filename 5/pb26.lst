@@ -1,0 +1,61 @@
+     1                                  bits 32
+     2                                  global start
+     3                                  extern exit, printf
+     4                                  import exit msvcrt.dll
+     5                                  import printf msvcrt.dll
+     6                                  
+     7                                  segment data use32
+     8 00000000 0104020308040905            s db 1, 4, 2, 3, 8, 4, 9, 5
+     9                                      len equ $-s
+    10 00000008 00                          max_poz_pare db 0
+    11 00000009 0F                          min_poz_impare db 15
+    12                                      
+    13 0000000A 4D617820706F7A6974-         format db 'Max pozitii pare: %d. Min pozitii impare: %d', 13, 10, 0
+    13 00000013 696920706172653A20-
+    13 0000001C 25642E204D696E2070-
+    13 00000025 6F7A6974696920696D-
+    13 0000002E 706172653A2025640D-
+    13 00000037 0A00               
+    14 00000039 4541583A2025643B20-         caca db 'EAX: %d; variabila: %d.', 13, 10, 0
+    14 00000042 766172696162696C61-
+    14 0000004B 3A2025642E0D0A00   
+    15                                  
+    16                                  segment code use32
+    17                                  start:
+    18 00000000 BE00000000                  mov esi, 0
+    19 00000005 B908000000                  mov ecx, len
+    20 0000000A E356                        jecxz final
+    21                                      array_loop:
+    22 0000000C B800000000                      mov eax, 0
+    23 00000011 8A86[00000000]                  mov al, [s + esi]
+    24 00000017 F7C601000000                    test esi, 01h
+    25 0000001D 740F                            jz poz_para
+    26                                      
+    27                                      ; poz_impara:        
+    28 0000001F 3A05[09000000]                  cmp al, [min_poz_impare]
+    29 00000025 7D14                            jnl after_check
+    30 00000027 A2[09000000]                    mov [min_poz_impare], al        
+    31 0000002C EB0D                            jmp after_check
+    32                                  
+    33                                      poz_para:
+    34 0000002E 3A05[08000000]                  cmp al, [max_poz_pare]
+    35 00000034 7E05                            jng after_check
+    36 00000036 A2[08000000]                    mov [max_poz_pare], al
+    37                                          
+    38                                      after_check:
+    39 0000003B 46                              inc esi
+    40 0000003C E2CE                            loop array_loop
+    41                                          
+    42 0000003E B800000000                  mov eax, 0
+    43 00000043 A0[09000000]                mov al, [min_poz_impare]
+    44 00000048 50                          push eax
+    45 00000049 B800000000                  mov eax, 0
+    46 0000004E A0[08000000]                mov al, [max_poz_pare]
+    47 00000053 50                          push eax
+    48 00000054 68[0A000000]                push dword format
+    49 00000059 FF15[00000000]              call [printf]
+    50 0000005F 83C40C                      add esp, 12
+    51                                  
+    52                                  final:
+    53 00000062 6A00                        push dword 0
+    54 00000064 FF15[00000000]              call [exit]

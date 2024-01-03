@@ -1,0 +1,54 @@
+     1                                  ;13. Dandu-se 4 octeti, sa se obtina in AX suma numerelor intregi reprezentate de bitii 4-6 ai celor 4 octeti.
+     2                                  
+     3                                  bits 32 ; assembling for the 32 bits architecture
+     4                                  
+     5                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     6                                  global start        
+     7                                  
+     8                                  ; declare external functions needed by our program
+     9                                  extern exit               ; tell nasm that exit exists even if we won't be defining it
+    10                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+    11                                                            ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    12                                  
+    13                                  ; our data is declared here (the variables needed by our program)
+    14                                  segment data use32 class=data
+    15                                      ;                bitii 4-6
+    16 00000000 29                          a db 00101001b ; 010
+    17 00000001 CC                          b db 11001100b ; 100
+    18 00000002 92                          c db 10010010b ; 001
+    19 00000003 53                          d db 01010011b ; 101
+    20                                      ;suma lor e   (1)100
+    21                                  
+    22                                  ; our code starts here
+    23                                  segment code use32 class=code
+    24                                      start:
+    25 00000000 66B80000                        mov ax, 0 ; calculam rezultatul in AX
+    26                                          
+    27 00000004 8A1D[00000000]                  mov bl, [a]
+    28 0000000A 6683E370                        and bx, 0000000001110000b ; izolam bitii 4-6 ai lui A
+    29 0000000E B104                            mov cl, 4
+    30 00000010 66D3EB                          shr bx, cl ; shiftam bitii spre dreapta
+    31 00000013 6601D8                          add ax, bx ; adaugam rezultatul in AX
+    32                                          
+    33 00000016 8A1D[01000000]                  mov bl, [b]
+    34 0000001C 6683E370                        and bx, 0000000001110000b ; izolam bitii 4-6 ai lui B
+    35 00000020 B104                            mov cl, 4
+    36 00000022 66D3EB                          shr bx, cl ; shiftam bitii spre dreapta
+    37 00000025 6601D8                          add ax, bx ; adaugam rezultatul in AX
+    38                                          
+    39 00000028 8A1D[02000000]                  mov bl, [c]
+    40 0000002E 6683E370                        and bx, 0000000001110000b ; izolam bitii 4-6 ai lui C
+    41 00000032 B104                            mov cl, 4
+    42 00000034 66D3EB                          shr bx, cl ; shiftam bitii spre dreapta
+    43 00000037 6601D8                          add ax, bx ; adaugam rezultatul in AX
+    44                                          
+    45 0000003A 8A1D[03000000]                  mov bl, [d]
+    46 00000040 6683E370                        and bx, 0000000001110000b ; izolam bitii 4-6 ai lui D
+    47 00000044 B104                            mov cl, 4
+    48 00000046 66D3EB                          shr bx, cl ; shiftam bitii spre dreapta
+    49 00000049 6601D8                          add ax, bx ; adaugam rezultatul in AX
+    50                                          
+    51                                      
+    52                                          ; exit(0)
+    53 0000004C 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    54 0000004E FF15[00000000]                  call    [exit]       ; call exit to terminate the program

@@ -1,0 +1,39 @@
+     1                                  ;10. Sa se inlocuiasca bitii 0-3 ai octetului B cu bitii 8-11 ai cuvantului A.
+     2                                  
+     3                                  bits 32 ; assembling for the 32 bits architecture
+     4                                  
+     5                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     6                                  global start        
+     7                                  
+     8                                  ; declare external functions needed by our program
+     9                                  extern exit               ; tell nasm that exit exists even if we won't be defining it
+    10                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+    11                                                            ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    12                                  
+    13                                  ; our data is declared here (the variables needed by our program)
+    14                                  segment data use32 class=data
+    15 00000000 96AA                        a dw 1010101010010110b ; = AA96h
+    16 00000002 B5                          b db 10110101b ; = B5h
+    17                                      ; b devine 101101010b = BAh
+    18                                  
+    19                                  ; our code starts here
+    20                                  segment code use32 class=code
+    21                                      start:
+    22 00000000 66BB0000                        mov bx, 0 ; calculam rezultatul in BX
+    23                                          
+    24 00000004 66A1[00000000]                  mov ax, [a]
+    25 0000000A 6625000F                        and ax, 0000111100000000b ; izolam bitii 8-11 ai lui A
+    26 0000000E B108                            mov cl, 8
+    27 00000010 66D3E8                          shr ax, cl ; shiftam bitii spre dreapta
+    28 00000013 6609C3                          or bx, ax ; momentan in bl e 0000[bitii 8-11 ai lui a]
+    29                                          
+    30 00000016 A0[02000000]                    mov al, [b]
+    31 0000001B 24F0                            and al, 11110000b ; izolam bitii 4-7 ai lui b
+    32 0000001D 08C3                            or bl, al ; bl = [bitii 4-7 ai lui b][bitii 8-11 ai lui a]
+    33                                          
+    34 0000001F 881D[02000000]                  mov [b], bl ; rezultat final
+    35                                          
+    36                                      
+    37                                          ; exit(0)
+    38 00000025 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    39 00000027 FF15[00000000]                  call    [exit]       ; call exit to terminate the program

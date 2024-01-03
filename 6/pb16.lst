@@ -1,0 +1,98 @@
+     1                                  bits 32
+     2                                  global start
+     3                                  extern exit, printf
+     4                                  import exit msvcrt.dll
+     5                                  import printf msvcrt.dll
+     6                                  
+     7                                  segment data use32
+     8 00000000 4243454648                  s1 db 'B', 'C', 'E', 'F', 'H'
+     9                                      len1 equ $ - s1
+    10 00000005 414447                      s2 db 'A', 'D', 'G'
+    11                                      len2 equ $ - s2
+    12 00000008 00<rept>                    s3 times len1+len2 db 0
+    13 00000010 25632C2000                  format db '%c, ', 0
+    14                                  
+    15                                  
+    16                                  segment code use32
+    17                                  start:
+    18 00000000 B908000000                  mov ecx, len1+len2
+    19 00000005 B800000000                  mov eax, 0
+    20 0000000A BA00000000                  mov edx, 0
+    21 0000000F BE00000000                  mov esi, 0 ; for s1
+    22 00000014 BF00000000                  mov edi, 0 ; for s2
+    23 00000019 BB00000000                  mov ebx, 0 ; for s3
+    24 0000001E 83F900                      cmp ecx, 0
+    25 00000021 0F848E000000                je final
+    26                                      interclasare_loop:
+    27 00000027 8A86[00000000]                  mov al, [s1 + esi]
+    28 0000002D 8A97[05000000]                  mov dl, [s2 + edi]
+    29                                          
+    30 00000033 38D0                            cmp al, dl
+    31 00000035 770A                            ja insert_from_s2
+    32                                          
+    33                                          insert_from_s1:
+    34 00000037 8883[08000000]                      mov [s3 + ebx], al
+    35 0000003D 43                                  inc ebx
+    36 0000003E 46                                  inc esi
+    37 0000003F EB08                                jmp after_insert
+    38                                          
+    39                                          insert_from_s2:
+    40 00000041 8893[08000000]                      mov [s3 + ebx], dl
+    41 00000047 43                                  inc ebx
+    42 00000048 47                                  inc edi
+    43                                          
+    44                                          after_insert:
+    45 00000049 83FB08                              cmp ebx, len1+len2
+    46 0000004C 743E                                je print_result
+    47                                              
+    48 0000004E 83FE05                              cmp esi, len1
+    49 00000051 7421                                je add_rest_from_s2
+    50                                              
+    51 00000053 83FF03                              cmp edi, len2
+    52 00000056 7402                                je add_rest_from_s1
+    53                                              
+    54                                          
+    55 00000058 E2CD                            loop interclasare_loop
+    56                                          
+    57                                      add_rest_from_s1:
+    58 0000005A 8A86[00000000]                  mov al, [s1 + esi]
+    59 00000060 8883[08000000]                  mov [s3 + ebx], al
+    60 00000066 43                              inc ebx
+    61 00000067 46                              inc esi
+    62 00000068 83FB08                          cmp ebx, len1+len2
+    63 0000006B 741F                            je print_result
+    64 0000006D 83FE05                          cmp esi, len1
+    65 00000070 741A                            je print_result
+    66 00000072 EBE6                            jmp add_rest_from_s1
+    67                                          
+    68                                      add_rest_from_s2:
+    69 00000074 8A87[05000000]                  mov al, [s2 + edi]
+    70 0000007A 8883[08000000]                  mov [s3 + ebx], al
+    71 00000080 43                              inc ebx
+    72 00000081 47                              inc edi
+    73 00000082 83FB08                          cmp ebx, len1+len2
+    74 00000085 7405                            je print_result
+    75 00000087 83FF03                          cmp edi, len2
+    76 0000008A 7400                            je print_result
+    77                                      
+    78                                      
+    79                                      print_result:
+    80                                      ; print s3
+    81 0000008C B908000000                  mov ecx, len1+len2
+    82 00000091 BE00000000                  mov esi, 0
+    83                                      print_loop:
+    84 00000096 51                              push ecx
+    85 00000097 B800000000                      mov eax, 0
+    86 0000009C 8A86[08000000]                  mov al, [s3 + esi]
+    87 000000A2 50                              push eax
+    88 000000A3 68[10000000]                    push dword format
+    89 000000A8 FF15[00000000]                  call [printf]
+    90 000000AE 83C408                          add esp, 8
+    91 000000B1 59                              pop ecx
+    92 000000B2 46                              inc esi
+    93 000000B3 E2E1                            loop print_loop
+    94                                      
+    95                                  
+    96                                  final:
+    97 000000B5 6A00                        push dword 0
+    98 000000B7 FF15[00000000]              call [exit]

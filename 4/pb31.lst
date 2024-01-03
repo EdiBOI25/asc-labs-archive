@@ -1,0 +1,53 @@
+     1                                  ;31. Se dau cuvintele A, B si C. Sa se formeze cuvantul D ca suma a numerelor reprezentate de:
+     2                                  ;   biţii de pe poziţiile 1-5 ai lui A
+     3                                  ;   biţii de pe poziţiile 6-10 ai lui B
+     4                                  ;   biţii de pe poziţiile 11-15 ai lui C
+     5                                  
+     6                                  
+     7                                  bits 32 ; assembling for the 32 bits architecture
+     8                                  
+     9                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+    10                                  global start        
+    11                                  
+    12                                  ; declare external functions needed by our program
+    13                                  extern exit               ; tell nasm that exit exists even if we won't be defining it
+    14                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+    15                                                            ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    16                                  
+    17                                  ; our data is declared here (the variables needed by our program)
+    18                                  segment data use32 class=data
+    19                                      ;                        bitii din cerinta
+    20 00000000 293D                        a dw 0011110100101001b ; 10100
+    21 00000002 CC88                        b dw 1000100011001100b ; 00011
+    22 00000004 92D2                        c dw 1101001010010010b ; 11010
+    23 00000006 <res 00000002>              d resw 1 ;    suma este 110001
+    24                                  
+    25                                  ; our code starts here
+    26                                  segment code use32 class=code
+    27                                      start:
+    28 00000000 66B80000                        mov ax, 0 ; calculam rezultatul in AX
+    29                                          
+    30 00000004 668B1D[00000000]                mov bx, [a]
+    31 0000000B 6683E33E                        and bx, 0000000000111110b ; izolam bitii 1-5 ai lui A
+    32 0000000F B101                            mov cl, 1
+    33 00000011 66D3EB                          shr bx, cl ; shiftam bitii spre dreapta
+    34 00000014 6601D8                          add ax, bx ; adaugam rezultatul in AX
+    35                                          
+    36 00000017 668B1D[02000000]                mov bx, [b]
+    37 0000001E 6681E3C007                      and bx, 0000011111000000b ; izolam bitii 6-10 ai lui B
+    38 00000023 B106                            mov cl, 6
+    39 00000025 66D3EB                          shr bx, cl ; shiftam bitii spre dreapta
+    40 00000028 6601D8                          add ax, bx ; adaugam rezultatul in AX
+    41                                          
+    42 0000002B 668B1D[04000000]                mov bx, [c]
+    43 00000032 6681E300F8                      and bx, 1111100000000000b ; izolam bitii 11-15 ai lui C
+    44 00000037 B10B                            mov cl, 11
+    45 00000039 66D3EB                          shr bx, cl ; shiftam bitii spre dreapta
+    46 0000003C 6601D8                          add ax, bx ; adaugam rezultatul in AX
+    47                                          
+    48 0000003F 66A3[06000000]                  mov [d], ax
+    49                                          
+    50                                      
+    51                                          ; exit(0)
+    52 00000045 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    53 00000047 FF15[00000000]                  call    [exit]       ; call exit to terminate the program

@@ -1,0 +1,27 @@
+     1                                  ; Scrieți un program în limbaj de asamblare care să rezolve expresia aritmetică, considerând domeniile de definiție ale variabilelor
+     2                                  ; a,b,c,d - word
+     3                                  ; 10. b+c+d+a-(d+c)
+     4                                  bits 32 ;asamblare si compilare pentru arhitectura de 32 biti
+     5                                  ; definim punctul de intrare in programul principal
+     6                                  global  start 
+     7                                  
+     8                                  extern  exit ; indicam asamblorului ca exit exista, chiar daca noi nu o vom defini
+     9                                  import  exit msvcrt.dll; exit este o functie care incheie procesul, este definita in msvcrt.dll
+    10                                          ; msvcrt.dll contine exit, printf si toate celelalte functii C-runtime importante
+    11                                  segment  data use32 class=data ; segmentul de date in care se vor defini variabilele 
+    12 00000000 0A00                    	a dw 10
+    13 00000002 1400                    	b dw 20
+    14 00000004 2800                        c dw 40
+    15 00000006 1E00                        d dw 30
+    16                                  segment  code use32 class=code ; segmentul de cod
+    17                                  start: 
+    18 00000000 66A1[02000000]              mov ax, [b] ; AX = b
+    19 00000006 660305[04000000]            add ax, [c] ; AX = b + c
+    20 0000000D 660305[06000000]            add ax, [d] ; AX = b + c + d
+    21 00000014 660305[00000000]            add ax, [a] ; AX = b + c + d + a
+    22 0000001B 668B1D[06000000]            mov bx, [d] ; BX = d
+    23 00000022 66031D[04000000]            add bx, [c] ; BX = d + c
+    24 00000029 6629D8                      sub ax, bx ; AX = b + c + d + a - (d + c)
+    25                                  	
+    26 0000002C 6A00                    	push   dword 0 ;se pune pe stiva codul de retur al functiei exit
+    27 0000002E FF15[00000000]          	call   [exit] ;apelul functiei sistem exit pentru terminarea executiei programului

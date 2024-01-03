@@ -1,0 +1,50 @@
+     1                                  ; Scrieți un program în limbaj de asamblare care să rezolve expresia aritmetică, considerând domeniile de definiție ale variabilelor
+     2                                  ; a, b, c - byte, d - word
+     3                                  ; 3*[20*(b-a+2)-10*c]/5
+     4                                  bits 32 ;asamblare si compilare pentru arhitectura de 32 biti
+     5                                  ; definim punctul de intrare in programul principal
+     6                                  global  start 
+     7                                  
+     8                                  extern  exit ; indicam asamblorului ca exit exista, chiar daca noi nu o vom defini
+     9                                  import  exit msvcrt.dll; exit este o functie care incheie procesul, este definita in msvcrt.dll
+    10                                          ; msvcrt.dll contine exit, printf si toate celelalte functii C-runtime importante
+    11                                  segment  data use32 class=data ; segmentul de date in care se vor defini variabilele 
+    12 00000000 0A                      	a db 10
+    13 00000001 28                      	b db 40
+    14 00000002 1E                          c db 30
+    15                                  segment  code use32 class=code ; segmentul de cod
+    16                                  start: 
+    17 00000000 66A1[01000000]          	mov ax, [b] ; AX = b
+    18 00000006 662B05[00000000]            sub ax, [a] ; AX = b - a
+    19 0000000D 6683C002                    add ax, 2 ; AX = b - a + 2
+    20                                      
+    21 00000011 66BA1400                    mov dx, 20 ; DX = 20
+    22 00000015 66F7E2                      mul dx ; DX:AX = 20 * (b - a + 2)
+    23                                      
+    24 00000018 6652                        push dx ; se pune pe stiva partea high din double word-ul DX:AX
+    25 0000001A 6650                        push ax ; -,,- low din double -,,-
+    26 0000001C 5B                          pop ebx ; EBX = DX:AX = 20 * (b - a + 2)
+    27                                      
+    28 0000001D 66A1[02000000]              mov ax, [c] ; AX = c
+    29 00000023 66BA0A00                    mov dx, 10 ; dx = 10
+    30 00000027 66F7E2                      mul dx ; DX:AX = 10 * c
+    31                                      
+    32 0000002A 6652                        push dx ; se pune pe stiva partea high din dw-ul DX:AX
+    33 0000002C 6650                        push ax ; se pune pe stiva partea low din dw-ul DX:AX
+    34 0000002E 58                          pop eax ; EAX = DX:AX = 10 * c
+    35                                      
+    36 0000002F 29C3                        sub ebx, eax ; EBX = EBX - EAX = 20 * (b - a + 2) - (10 * c)
+    37 00000031 53                          push ebx ; se pune pe stiva EBX
+    38 00000032 58                          pop eax ; EAX = EBX
+    39                                      
+    40 00000033 66BB0300                    mov bx, 3 ; bx = 3
+    41 00000037 66F7E3                      mul bx ; AX = AX * BX = 3 * [20 * (b - a + 2) - (10 * c)]
+    42                                      
+    43 0000003A 66BA0500                    mov dx, 5 ; dx = 5
+    44 0000003E 66F7F2                      div dx ; AX = AX / DX = 3 * [20 * (b - a + 2) - (10 * c)] / 5
+    45                                      
+    46                                      
+    47                                  	
+    48                                  	
+    49 00000041 6A00                    	push   dword 0 ;se pune pe stiva codul de retur al functiei exit
+    50 00000043 FF15[00000000]          	call   [exit] ;apelul functiei sistem exit pentru terminarea executiei programului

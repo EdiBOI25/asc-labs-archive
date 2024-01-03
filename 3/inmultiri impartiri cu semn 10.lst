@@ -1,0 +1,65 @@
+     1                                  ;Înmulțiri, împărțiri - Interpretare cu semn
+     2                                  ;10. d-(7-a*b+c)/a-6+x/2
+     3                                  ; a,c-byte; b-word; d-doubleword; x-qword
+     4                                  bits 32
+     5                                  
+     6                                  global start
+     7                                  
+     8                                  extern exit
+     9                                  import exit msvcrt.dll
+    10                                  
+    11                                  segment data use32 class=data
+    12 00000000 02                          a db 2
+    13 00000001 01                          c db 1
+    14 00000002 0100                        b dw 1
+    15 00000004 01000000                    d dd 1
+    16 00000008 0400000000000000            x dq 4
+    17                                      
+    18                                  segment code use32 class=code
+    19                                      start:
+    20                                          ;d - (7 - a * b + c) / a - 6 + x / 2
+    21 00000000 A0[00000000]                    mov al, [a]
+    22 00000005 6698                            cbw ; AL -> AX
+    23 00000007 66F72D[02000000]                imul word[b]; DX:AX = AX * b = a * b
+    24                                          
+    25 0000000E 66BB0700                        mov bx, 7
+    26 00000012 66B90000                        mov cx, 0 ; CX:BX = 7
+    27 00000016 6629C3                          sub bx, ax ; BX = BX - AX = 7 - a*b
+    28 00000019 6619CA                          sbb dx, cx ; CX = CX - DX - CF
+    29                                          ; CX:BX = 7-a*b
+    30                                          
+    31 0000001C 66031D[01000000]                add bx, [c] ; BX = BX + c
+    32 00000023 6683D100                        adc cx, 0 ; adunam CF in CX
+    33                                          ; CX:BX = 7 - a * b + c
+    34                                          
+    35 00000027 A0[00000000]                    mov al, [a]
+    36 0000002C 6698                            cbw ; AL -> AX = a
+    37 0000002E 6650                            push ax ; AX in stiva
+    38                                          
+    39 00000030 6689D8                          mov ax, bx
+    40 00000033 6689CA                          mov dx, cx
+    41                                          ; DX:AX = (7-a*b+c)
+    42 00000036 665B                            pop bx ; BX = a (din stiva)
+    43 00000038 66F7FB                          idiv bx ; AX = DX:AX / BX ; DX = DX:AX % BX
+    44                                          ; AX = (7 - a * b + c) / a
+    45                                          
+    46 0000003B 98                              cwde ; AX -> EAX = (7 - a * b + c) / a
+    47                                          
+    48 0000003C 8B1D[04000000]                  mov ebx, [d]
+    49 00000042 29C3                            sub ebx, eax ; EBX = EBX - EAX
+    50                                          ; EBX = d - (7 - a * b + c) / a
+    51 00000044 83EB06                          sub ebx, 6 ; EBX = d - (7 - a * b + c) / a - 6
+    52                                          
+    53 00000047 A1[08000000]                    mov eax, dword[x]
+    54 0000004C 8B15[0C000000]                  mov edx, dword[x+4] ; EDX:EAX = x
+    55 00000052 B902000000                      mov ecx, 2
+    56 00000057 F7F9                            idiv ecx ; EAX = EDX:EAX / ECX  ;  EDX = EDX:EAX % ECX
+    57                                          ; EAX = x / 2
+    58                                          
+    59 00000059 01D8                            add eax, ebx
+    60 0000005B 83D200                          adc edx, 0
+    61                                          ; EAX = d - (7 - a * b + c) / a - 6 + x / 2
+    62                                          
+    63                                          
+    64 0000005E 6A00                            push dword 0
+    65 00000060 FF15[00000000]                  call [exit]

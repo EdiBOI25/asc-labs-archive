@@ -1,0 +1,40 @@
+     1                                  ;Se da un sir de octeti S. Sa se obtina sirul D1 ce contine toate numerele pare din S si sirul D2 ce contine toate numerele impare din S.
+     2                                  bits 32
+     3                                  global start
+     4                                  extern exit
+     5                                  import exit msvcrt.dll
+     6                                  
+     7                                  segment data use32 class=data
+     8 00000000 010503080209                s db 1, 5, 3, 8, 2, 9
+     9                                      len equ $-s ; lungimea sirului S
+    10 00000006 00<rept>                    d1 times len db 0h ; rezervam len octeti pentru sirul D1
+    11 0000000C 00<rept>                    d2 times len db 0h ; rezervam len octeti pentru sirul D2
+    12                                      
+    13                                  segment code use32 class=code
+    14                                  start:
+    15 00000000 B906000000                  mov ecx, len ; de cate ori vrem sa repetam loop-ul
+    16 00000005 BE00000000                  mov esi, 0 ; indexul sursa
+    17 0000000A BF00000000                  mov edi, 0 ; indexul destinatie, pt D1
+    18 0000000F BB00000000                  mov ebx, 0 ; indexul pentru D2
+    19                                      
+    20 00000014 E320                        jecxz Sfarsit ; sare la eticheta Sfarsit in cazul in care ecx e 0 (safety measure)
+    21                                      Repeta:
+    22 00000016 8A86[00000000]                  mov al, [s+esi] ; AL = s[esi]
+    23 0000001C A801                            test al, 01h ; testam daca s[esi] e par
+    24 0000001E 740C                            jz ePar ; daca e par (ZF=1) sarim spre ePar
+    25                                          ; tratam cazul in care s[esi] e impar
+    26 00000020 8883[0C000000]                  mov [d2+ebx], al ; d2[ebx] = s[esi]
+    27 00000026 43                              inc ebx ; crestem indexul lui D2
+    28 00000027 46                              inc esi ; crestem indexul lui S
+    29 00000028 E2EC                            loop Repeta ; repetam loop-ul
+    30 0000002A EB0A                        jmp Sfarsit ; cand se termina loop-ul, sarim la Sfarsit
+    31                                      
+    32                                      ePar: ; tratam cazul s[esi] e par
+    33 0000002C 8887[06000000]                  mov [d1+edi], al ; d1[edi] = s[esi]
+    34 00000032 47                              inc edi ; crestem indexul lui D1
+    35 00000033 46                              inc esi ; crestem indexul lui S
+    36 00000034 E2E0                            loop Repeta ; repetam loop-ul
+    37                                      
+    38                                      Sfarsit:
+    39 00000036 6A00                        push dword 0
+    40 00000038 FF15[00000000]              call [exit]

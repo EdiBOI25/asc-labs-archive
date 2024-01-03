@@ -1,0 +1,54 @@
+     1                                  ; a - byte, b - word, c - double word, d - qword - Interpretare cu semn
+     2                                  ; b+c+d+a-(d+c)
+     3                                  
+     4                                  bits 32
+     5                                  
+     6                                  global start
+     7                                  
+     8                                  extern exit
+     9                                  import exit msvcrt.dll
+    10                                  
+    11                                  segment data use32 class=data
+    12 00000000 01                          a db 1
+    13 00000001 0100                        b dw 1
+    14 00000003 01000000                    c dd 1
+    15 00000007 0100000000000000            d dq 1
+    16                                      
+    17                                  segment code use32 class=code
+    18                                      start:
+    19 00000000 A1[03000000]                    mov eax, [c] ; EAX = c
+    20 00000005 99                              cdq ; EAX -> EDX:EAX (conversie cu semn)
+    21 00000006 0305[07000000]                  add eax, dword[d]
+    22 0000000C 1315[0B000000]                  adc edx, dword[d+4]
+    23                                          ; EDX:EAX = d + c
+    24                                          
+    25 00000012 52                              push edx
+    26 00000013 50                              push eax
+    27                                          ; EDX:EAX in stiva ; cand dam pop, dam pop EAX apoi pop EDX
+    28                                          
+    29 00000014 66A1[01000000]                  mov ax, [b] ; AX = b
+    30 0000001A 98                              cwde ; AX -> EAX (conversie cu semn)
+    31 0000001B 0305[03000000]                  add eax, [c] ; EAX = EAX + c = b + c
+    32                                          
+    33 00000021 0305[07000000]                  add eax, dword[d]
+    34 00000027 1315[0B000000]                  adc edx, dword[d+4]
+    35                                          ; EDX:EAX = b + c + d
+    36                                          
+    37 0000002D 8A1D[00000000]                  mov bl, [a] ; BL = a
+    38 00000033 6698                            cbw ; BL -> BX
+    39 00000035 98                              cwde ; BX -> EBX
+    40 00000036 01D8                            add eax, ebx
+    41 00000038 83D200                          adc edx, 0
+    42                                          ; EDX:EAX = b + c + d + a
+    43                                          
+    44 0000003B 5B                              pop ebx
+    45 0000003C 59                              pop ecx
+    46                                          ; ECX;EBX = d + c
+    47                                          
+    48 0000003D 29D8                            sub eax, ebx
+    49 0000003F 19CA                            sbb edx, ecx
+    50                                          ; EDX:EAX = b+c+d+a-(d+c)
+    51                                          
+    52                                          
+    53 00000041 6A00                            push dword 0
+    54 00000043 FF15[00000000]                  call [exit]

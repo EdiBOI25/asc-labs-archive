@@ -1,0 +1,83 @@
+     1                                  ; Checks if string1 is a substring of string2
+     2                                  ; find_substring(string1, string2, found)
+     3                                  ; returns 0 or 1 (false or true) in FOUND
+     4                                  
+     5                                  bits 32
+     6                                  
+     7                                  extern printf
+     8                                  import printf msvcrt.dll
+     9                                  
+    10                                  segment data use32
+    11 00000000 FFFFFFFF                    found_address dd -1
+    12 00000004 FFFFFFFF                    string1_address dd -1
+    13 00000008 FFFFFFFF                    string2_address dd -1
+    14 0000000C FFFFFFFF                    length1 dd -1
+    15 00000010 25640D0A00                  format db '%d', 13, 10, 0
+    16 00000015 2573200D0A00                format_str db '%s ', 13, 10, 0
+    17                                  
+    18                                  segment code use32 public code
+    19                                  global find_substring
+    20                                  
+    21                                  find_substring:
+    22 00000000 8B44240C                    mov eax, [esp + 12]
+    23 00000004 A3[00000000]                mov [found_address], eax ; address of found variable in main
+    24 00000009 8B442408                    mov eax, [esp + 8]
+    25 0000000D A3[08000000]                mov [string2_address], eax
+    26 00000012 8B442404                    mov eax, [esp + 4]
+    27 00000016 A3[04000000]                mov [string1_address], eax ; addresses of strings
+    28                                      
+    29                                      ; find length of string1
+    30 0000001B B800000000                  mov eax, 0
+    31 00000020 BE[04000000]                mov esi, string1_address
+    32                                      str1_len:
+    33 00000025 803E00                          cmp byte [esi], 0
+    34 00000028 7408                            je after_str1_len
+    35 0000002A 83C001                          add eax, 1
+    36 0000002D 83C601                          add esi, 1
+    37 00000030 EBF3                            jmp str1_len
+    38                                      after_str1_len:
+    39 00000032 A3[0C000000]                    mov [length1], eax
+    40                                          
+    41 00000037 FF35[0C000000]              push dword [length1]
+    42 0000003D 68[10000000]                push dword format
+    43 00000042 FF15[00000000]              call [printf]
+    44 00000048 83C408                      add esp, 8
+    45                                      
+    46                                      ; searches in segment of string2 starting from edx
+    47 0000004B BA[08000000]                mov edx, string2_address
+    48                                      search:
+    49 00000050 803A00                          cmp byte [edx], 0 ; check if we are at the end of string2
+    50 00000053 7440                            je substring_not_found
+    51 00000055 BE[04000000]                    mov esi, string1_address ; esi = address of string1
+    52 0000005A 89D7                            mov edi, edx ; edi = address of string2 starting from the character pointed by edx
+    53 0000005C B900000000                      mov ecx, 0
+    54 00000061 8B0D[0C000000]                  mov ecx, [length1]
+    55 00000067 E315                            jecxz after_sub_loop
+    56                                          sub_loop:
+    57 00000069 BB00000000                          mov ebx, 0
+    58 0000006E 8A1E                                mov bl, [esi]
+    59 00000070 381F                                cmp byte [edi], bl ; check if characters are equal
+    60 00000072 750A                                jne after_sub_loop
+    61 00000074 83C601                              add esi, 1
+    62 00000077 83C701                              add edi, 1
+    63 0000007A E2ED                                loop sub_loop
+    64 0000007C EB05                            jmp substring_found
+    65                                          after_sub_loop:
+    66 0000007E 83C201                          add edx, 1 ; start from next character
+    67 00000081 EBCD                            jmp search
+    68                                      
+    69                                      substring_found:
+    70 00000083 B800000000                      mov eax, 0
+    71 00000088 A1[00000000]                    mov eax, [found_address]
+    72 0000008D C70001000000                    mov [eax], dword 1
+    73 00000093 EB10                            jmp final
+    74                                          
+    75                                      substring_not_found:
+    76 00000095 B800000000                      mov eax, 0
+    77 0000009A A1[00000000]                    mov eax, [found_address]
+    78 0000009F C70000000000                    mov [eax], dword 0
+    79                                      
+    80                                      
+    81                                  final:
+    82 000000A5 C20C00                      ret 3 * 4
+    83                                      

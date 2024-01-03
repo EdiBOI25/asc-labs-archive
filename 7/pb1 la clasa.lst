@@ -1,0 +1,43 @@
+     1                                  bits 32
+     2                                  global start
+     3                                  
+     4                                  extern exit, printf, scanf
+     5                                  import exit msvcrt.dll
+     6                                  import printf msvcrt.dll
+     7                                  import scanf msvcrt.dll
+     8                                  
+     9                                  segment data use32 class=data
+    10 00000000 00000000                    n dd 0
+    11 00000004 25640000                    citit dd "%d"
+    12                                      ; afisare dd "Numarul n vazut ca numar unsigned este %u, iar in hexa este %x"
+    13 00000008 4E756D6172756C2076-         mes1 dd "Numarul vazut ca unsigned este %u. "
+    13 00000011 617A75742063612075-
+    13 0000001A 6E7369676E65642065-
+    13 00000023 7374652025752E2000 
+    14 0000002C 0A0D4E756D6172756C-         mes2 db 10, 13, "Numarul vazut ca hexa este %x" ; 10, 13 reprezinta \n
+    14 00000035 2076617A7574206361-
+    14 0000003E 206865786120657374-
+    14 00000047 65202578           
+    15                                  
+    16                                  segment code use32 class=code
+    17                                  start:
+    18 00000000 68[00000000]                push dword n
+    19 00000005 68[04000000]                push dword citit
+    20 0000000A FF15[00000000]              call [scanf]
+    21 00000010 83C408                      add esp, 4*2
+    22 00000013 A1[00000000]                mov eax, [n]
+    23                                      
+    24 00000018 FF35[00000000]              push dword[n]
+    25 0000001E 68[08000000]                push dword mes1
+    26 00000023 FF15[00000000]              call [printf]
+    27 00000029 83C408                      add esp, 4*2
+    28                                      
+    29 0000002C A1[00000000]                mov eax, [n]
+    30 00000031 FF35[00000000]              push dword[n]
+    31 00000037 68[2C000000]                push dword mes2
+    32 0000003C FF15[00000000]              call [printf]
+    33 00000042 83C408                      add esp, 4*2
+    34                                      
+    35 00000045 6A00                        push dword 0
+    36 00000047 FF15[00000000]              call [exit]
+    37                                      
