@@ -58,13 +58,11 @@ find_substring:
         jmp search
     
     substring_found:
-        mov eax, 0
         mov eax, [found_address]
         mov [eax], dword 1
         jmp final
         
     substring_not_found:
-        mov eax, 0
         mov eax, [found_address]
         mov [eax], dword 0
     

@@ -6,13 +6,14 @@ extern _printf
 segment data use32 public data
     substring_address dd -1
     otherstring_address dd -1
-    length_sub dd -1
+    length_sub dd -1 ; substring length
     
 segment code use32 public code
 ; find_substring(substring, otherstring)
 _find_substring:
-    push ebp
-    mov ebp, esp
+    ; cod de intrare
+    push ebp ; salvam vechiul EBP
+    mov ebp, esp ; mutam ebp pt noul cadru de stiva
     sub esp, 12 ; rezervam 4*3 octeti in stiva pt variabilele locale
     
     mov eax, [ebp + 8] ; substring
@@ -68,7 +69,8 @@ _find_substring:
 
 
 final:
-    add esp, 12
-    mov esp, ebp
-    pop ebp
+    ; cod de iesire
+    add esp, 12 ; restaureaza spatiul pt variabilele locale
+    mov esp, ebp ; restauram varful stivei anterioare
+    pop ebp ; restauram baza stivei anterioare
     ret
