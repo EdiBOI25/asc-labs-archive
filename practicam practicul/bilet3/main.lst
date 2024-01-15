@@ -1,0 +1,103 @@
+     1                                  bits 32
+     2                                  
+     3                                  global start
+     4                                  
+     5                                  extern exit, fopen, fclose, fscanf, fprintf, printf
+     6                                  import exit msvcrt.dll
+     7                                  import fopen msvcrt.dll
+     8                                  import fclose msvcrt.dll
+     9                                  import fscanf msvcrt.dll
+    10                                  import fprintf msvcrt.dll
+    11                                  import printf msvcrt.dll
+    12                                  
+    13                                  segment data use32 class=data
+    14 00000000 616263646566676869-         text db 'abcdefghij', 0
+    14 00000009 6A00               
+    15 0000000B 696E7075742E747874-         input_file_name db 'input.txt', 0
+    15 00000014 00                 
+    16 00000015 7200                        access_read db 'r', 0
+    17 00000017 FFFFFFFF                    input_file_desc dd -1
+    18 0000001B 00000000                    n dd 0
+    19                                      
+    20 0000001F 6F75747075742D692E-         output_file_name db 'output-i.txt', 0
+    20 00000028 74787400           
+    21 0000002C 7700                        access_write db 'w', 0
+    22 0000002E FFFFFFFF                    output_file_desc dd -1
+    23                                      i_position equ 7
+    24 00000032 <res 0000000A>              reverse_text resb 10
+    25                                      
+    26 0000003C 256400                      format_dec db '%d', 0
+    27 0000003F 257300                      format_str db '%s', 0
+    28                                  
+    29                                  segment code use32 class=code
+    30                                  start:
+    31                                      ; open input file
+    32 00000000 68[15000000]                push dword access_read
+    33 00000005 68[0B000000]                push dword input_file_name
+    34 0000000A FF15[00000000]              call [fopen]
+    35 00000010 83C408                      add esp, 8
+    36 00000013 83F800                      cmp eax, 0
+    37 00000016 0F84A3000000                je .exit_program
+    38 0000001C A3[17000000]                mov [input_file_desc], eax
+    39                                      
+    40                                      ; read number from file
+    41 00000021 68[1B000000]                push dword n
+    42 00000026 68[3C000000]                push dword format_dec
+    43 0000002B FF35[17000000]              push dword [input_file_desc]
+    44 00000031 FF15[00000000]              call [fscanf]
+    45 00000037 83C408                      add esp, 8
+    46                                      
+    47                                      ; create output files
+    48 0000003A BF00000000                  mov edi, 0 ; index for reverse_text ; also serves as "i" from problem
+    49 0000003F 8B0D[1B000000]              mov ecx, [n]
+    50 00000045 E369                        jecxz .close_input_file
+    51                                      .create_files_loop:
+    52 00000047 51                              push ecx
+    53                                          ; move "i" and place it in file name
+    54 00000048 89F8                            mov eax, edi
+    55 0000004A 83C030                          add eax, '0'
+    56 0000004D A2[26000000]                    mov [output_file_name + i_position], al
+    57                                          
+    58                                          
+    59                                          ; create/open file
+    60 00000052 68[2C000000]                    push dword access_write
+    61 00000057 68[1F000000]                    push dword output_file_name
+    62 0000005C FF15[00000000]                  call [fopen]
+    63 00000062 83C408                          add esp, 8
+    64 00000065 83F800                          cmp eax, 0
+    65 00000068 7446                            je .after_create_files_loop
+    66 0000006A A3[2E000000]                    mov [output_file_desc], eax
+    67                                          
+    68                                          ; add letter to reverse_text
+    69 0000006F B800000000                      mov eax, 0
+    70 00000074 8D05[09000000]                  lea eax, [text + 9]
+    71 0000007A 29F8                            sub eax, edi
+    72 0000007C 8A00                            mov al, [eax] ; al = text[9 - edi]
+    73 0000007E 8887[32000000]                  mov [reverse_text + edi], al ; reverse_text[edi] = al
+    74 00000084 47                              inc edi
+    75                                          
+    76 00000085 68[32000000]                    push dword reverse_text
+    77 0000008A 68[3F000000]                    push dword format_str
+    78 0000008F FF35[2E000000]                  push dword [output_file_desc]
+    79 00000095 FF15[00000000]                  call [fprintf]
+    80 0000009B 83C40C                          add esp, 12
+    81                                          
+    82                                          ; close output file
+    83 0000009E FF35[2E000000]                  push dword [output_file_desc]
+    84 000000A4 FF15[00000000]                  call [fclose]
+    85 000000AA 83C404                          add esp, 4
+    86                                          
+    87 000000AD 59                              pop ecx
+    88 000000AE E297                            loop .create_files_loop
+    89                                      
+    90                                      .after_create_files_loop:
+    91                                      
+    92                                      
+    93                                      .close_input_file:
+    94 000000B0 FF35[17000000]              push dword [input_file_desc]
+    95 000000B6 FF15[00000000]              call [fclose]
+    96 000000BC 83C404                      add esp, 4
+    97                                  
+    98                                  .exit_program:
+    99 000000BF 6A00                        push dword 0
+   100 000000C1 FF15[00000000]              call [exit]
