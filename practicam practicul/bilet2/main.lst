@@ -1,0 +1,106 @@
+     1                                  bits 32
+     2                                  
+     3                                  global start
+     4                                  
+     5                                  extern exit, fopen, fclose, printf, fread
+     6                                  import exit msvcrt.dll
+     7                                  import fopen msvcrt.dll
+     8                                  import fclose msvcrt.dll
+     9                                  import printf msvcrt.dll
+    10                                  import fread msvcrt.dll
+    11                                  
+    12                                  segment data use32 class=data
+    13 00000000 FFFFFFFF                    file_descriptor dd -1
+    14 00000004 696E7075742E747874-         file_name db 'input.txt', 0
+    14 0000000D 00                 
+    15 0000000E 7200                        access_read db 'r', 0
+    16                                      
+    17 00000010 00<rept>                    digits times 100 db 0
+    18 00000074 2558202D2025640D0A-         print_format db '%X - %d', 13, 10, 0
+    18 0000007D 00                 
+    19                                      
+    20 0000007E 25730D0A00                  print_string db '%s', 13, 10, 0
+    21 00000083 25640D0A00                  print_dec db '%d', 13, 10, 0
+    22                                  
+    23                                  
+    24                                  segment code use32 class=code
+    25                                  start:
+    26                                      ; open file
+    27 00000000 68[0E000000]                push dword access_read
+    28 00000005 68[04000000]                push dword file_name
+    29 0000000A FF15[00000000]              call [fopen]
+    30 00000010 83C408                      add esp, 8
+    31                                      ; check for errors
+    32 00000013 83F800                      cmp eax, 0
+    33 00000016 7476                        je exit_program
+    34 00000018 A3[00000000]                mov [file_descriptor], eax
+    35                                      
+    36                                      ; read digits
+    37 0000001D FF35[00000000]              push dword [file_descriptor]
+    38 00000023 6A64                        push dword 100
+    39 00000025 6A01                        push dword 1
+    40 00000027 68[10000000]                push dword digits
+    41 0000002C FF15[00000000]              call [fread]
+    42 00000032 83C410                      add esp, 16
+    43                                      
+    44                                      ; loop through digits
+    45 00000035 BE00000000                  mov esi, 0
+    46                                      .digits_loop:
+    47 0000003A B800000000                      mov eax, 0
+    48 0000003F 8A86[10000000]                  mov al, [digits + esi]
+    49                                          
+    50                                          ; end of digits
+    51 00000045 3C00                            cmp al, 0
+    52 00000047 7436                            je .after_digits_loop
+    53                                          
+    54                                          ; space character -> next digit
+    55 00000049 3C20                            cmp al, ' '
+    56 0000004B 742F                            je .next_digit
+    57                                          
+    58                                          
+    59                                          
+    60                                          ; check if digit is [A, F]
+    61 0000004D 3C41                            cmp al, 'A'
+    62 0000004F 7206                            jb .not_letter
+    63                                          ; 'C' - 'A' + 10 = 12 (hex -> dec)
+    64 00000051 2C41                            sub al, 'A'
+    65 00000053 040A                            add al, 10
+    66 00000055 EB02                            jmp .after_transf
+    67                                          
+    68                                          .not_letter:
+    69                                          ; '3' - '0' = 3 (str -> dec)
+    70 00000057 2C30                            sub al, '0'
+    71                                          
+    72                                          .after_transf:
+    73 00000059 50                              push eax ; save digit in str form
+    74                                          ; find no. of bits
+    75 0000005A BB00000000                      mov ebx, 0
+    76 0000005F B904000000                      mov ecx, 4
+    77                                          .bits_loop:
+    78 00000064 D0E8                                shr al, 1
+    79 00000066 83D300                              adc ebx, 0
+    80 00000069 E2F9                                loop .bits_loop
+    81                                          
+    82 0000006B 58                              pop eax ; digit in str form
+    83 0000006C 53                              push ebx
+    84 0000006D 50                              push eax
+    85 0000006E 68[74000000]                    push dword print_format
+    86 00000073 FF15[00000000]                  call [printf]
+    87 00000079 83C40C                          add esp, 12
+    88                                          
+    89                                          .next_digit:
+    90 0000007C 46                              inc esi
+    91 0000007D EBBB                            jmp .digits_loop
+    92                                      
+    93                                      .after_digits_loop:
+    94                                  
+    95                                      
+    96                                      ; close file
+    97 0000007F FF35[00000000]              push dword [file_descriptor]
+    98 00000085 FF15[00000000]              call [fclose]
+    99 0000008B 83C404                      add esp, 4
+   100                                  
+   101                                  
+   102                                  exit_program:
+   103 0000008E 6A00                        push dword 0
+   104 00000090 FF15[00000000]              call [exit]
